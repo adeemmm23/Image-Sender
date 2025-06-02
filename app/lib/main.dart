@@ -253,12 +253,16 @@ class _ImagePageState extends State<ImagePage> {
                 try {
                   if (!isSending) {
                     if (context.mounted) {
-                      isSending = true;
+                      setState(() {
+                        isSending = true;
+                      });
                     }
                     final response = await sendRequest(imageFile!);
                     debugPrint(response);
                     if (context.mounted) {
-                      isSending = false;
+                      setState(() {
+                        isSending = false;
+                      });
                     }
                   }
                 } catch (e) {
