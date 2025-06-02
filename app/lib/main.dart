@@ -49,18 +49,18 @@ class ImagePage extends StatefulWidget {
 }
 
 class _ImagePageState extends State<ImagePage> {
-  String host = '192.168.1.10';
+  String host = 'https://d75a-34-138-109-12.ngrok-free.app/';
   String data = '';
   bool isSending = false;
   File? imageFile;
 
   Future<String> sendRequest(File image) async {
-    final uri = Uri(scheme: 'http', host: host, port: 5000);
+    final uri = Uri.parse(host);
     final request = http.MultipartRequest("POST", uri);
 
     request.files.add(
       http.MultipartFile.fromBytes(
-        'file',
+        'image',
         image.readAsBytesSync(),
         filename: 'image.jpg',
       ),
@@ -73,13 +73,16 @@ class _ImagePageState extends State<ImagePage> {
       debugPrint("MMMMMMM SENDING");
 
       if (response.statusCode != 200) {
-        return 'Error: ${response.statusCode}';
+        // print message
+        debugPrint("MMMMMMM ERROR: ${response.statusCode}");
+        debugPrint("MMMMMMM BODY: $body");
+        return throw Exception('Failed to send request');
       }
 
       debugPrint("MMMMMMM RECEIVED");
 
       setState(() {
-        data = jsonDecode(body)['data'] ?? 'No data received';
+        data = jsonDecode(body)['prediction'] ?? 'No data received';
       });
 
       return body;
@@ -126,6 +129,10 @@ class _ImagePageState extends State<ImagePage> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainer,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withAlpha(100),
+                    width: 2,
+                  ),
                 ),
                 child: imageFile == null
                     ? Center(
@@ -154,9 +161,12 @@ class _ImagePageState extends State<ImagePage> {
                           },
                         ),
                       )
-                    : Image.file(
-                        imageFile!,
-                        fit: BoxFit.cover,
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.file(
+                          imageFile!,
+                          fit: BoxFit.cover,
+                        ),
                       ),
               ),
               Text(
@@ -191,12 +201,8 @@ class _ImagePageState extends State<ImagePage> {
                         spacing: 5,
                         children: [
                           const Text('Change Host'),
-                          const Text(
-                            'Use the command "ipconfig" in the terminal to get the IP address of the server',
-                            style: TextStyle(fontSize: 14),
-                          ),
                           Text(
-                            'Current host: $host',
+                            'Enter the host URL to send the image to. Current host is $host',
                             style: const TextStyle(fontSize: 14),
                           ),
                         ],
